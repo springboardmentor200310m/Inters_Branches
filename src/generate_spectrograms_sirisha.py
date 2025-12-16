@@ -4,12 +4,12 @@ import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 
-DATASET_PATH = r"C:\Users\siri reddy\OneDrive\Documents\Desktop\Label\archive_orginal_backup\IRMAS-TrainingData"
-OUTPUT_PATH = "spectrograms"
+#DATASET_PATH = r"C:\Users\siri reddy\OneDrive\Documents\Desktop\Label\archive_orginal_backup\IRMAS-TrainingData"
+#OUTPUT_PATH = "spectrograms"
 
 #to process more than one file and image
-#DATASET_PATH = r"C:\Users\siri reddy\OneDrive\Documents\Desktop\Label\archive_full_data\IRMAS-TrainingData"
-#OUTPUT_PATH = "spectrograms_full_data"
+DATASET_PATH = r"C:\Users\siri reddy\OneDrive\Documents\Desktop\Label\archive_full_data\IRMAS-TrainingData"
+OUTPUT_PATH = "spectrograms_full_data"
 
 
 os.makedirs(OUTPUT_PATH, exist_ok=True)
@@ -53,6 +53,5 @@ for label in os.listdir(DATASET_PATH):
             plt.close()
 
             print("Saved:", save_path)
-            #exit()
 
 print("✅ Spectrogram generation completed successfully!")
