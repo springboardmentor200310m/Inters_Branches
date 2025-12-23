@@ -99,7 +99,7 @@ criterion = nn.CrossEntropyLoss(weight=class_weights)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="max", patience=3, factor=0.5, verbose=True
+    optimizer, mode="max", patience=3, factor=0.5
 )
 
 # ---------------- METRICS ----------------
