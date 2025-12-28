@@ -1,4 +1,5 @@
 🎵INSTRUNET AI CNN-BASED MUSICAL INSTRUMENT RECOGNITION SYSTEM
+
 🎯PROJECT OVERVIEW InstruNet AI is a deep learning–based system that automatically identifies musical instruments from audio files. The system converts audio signals into Mel-spectrogram images and uses a Convolutional Neural Network (CNN) to classify different musical instruments.
 
 This project demonstrates an end-to-end machine learning pipeline including data preprocessing, CNN model development, fine-tuning, evaluation, and analysis.
