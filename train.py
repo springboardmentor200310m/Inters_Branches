@@ -9,11 +9,12 @@ import matplotlib.pyplot as plt
 
 from model import InstrumentCNN
 
-# ---------------- CONFIG ----------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(SRC_DIR)   # go to project root
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
-SPEC_DIR = os.path.join(BASE_DIR, "spectrograms")
+SPEC_DIR = os.path.join(BASE_DIR, "spectrograms")  # ✅ THIS is where preprocess.py saved data
+
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 PLOT_DIR = os.path.join(BASE_DIR, "plots")
 
@@ -23,7 +24,11 @@ os.makedirs(PLOT_DIR, exist_ok=True)
 MODEL_PATH = os.path.join(MODEL_DIR, "instrument_cnn.pth")
 BEST_MODEL_PATH = os.path.join(MODEL_DIR, "instrument_cnn_best.pth")
 
-CLASSES = sorted(os.listdir(SPEC_DIR))
+CLASSES = sorted([
+    d for d in os.listdir(SPEC_DIR)
+    if os.path.isdir(os.path.join(SPEC_DIR, d))
+])
+
 NUM_CLASSES = len(CLASSES)
 
 BATCH_SIZE = 32
@@ -196,3 +201,17 @@ plt.savefig(os.path.join(PLOT_DIR, "loss_curve.png"))
 plt.close()
 
 print("📊 Accuracy & Loss plots saved in /plots")
+
+import json
+
+metrics = {
+    "train_loss": train_losses,
+    "val_loss": val_losses,
+    "train_acc": train_accs,
+    "val_acc": val_accs
+}
+
+with open(os.path.join(PLOT_DIR, "metrics.json"), "w") as f:
+    json.dump(metrics, f)
+
+print("📁 Metrics saved to plots/metrics.json")
