@@ -1,68 +1,87 @@
 import os
 import librosa
-import librosa.display
-import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 print("🔥 preprocess.py STARTED")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "..", "data")
-SAVE_DIR = os.path.join(BASE_DIR, "..", "spectrograms")
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(SRC_DIR)
 
-print("BASE_DIR =", BASE_DIR)
-print("DATA_DIR =", DATA_DIR)
-print("SAVE_DIR =", SAVE_DIR)
+DATA_DIR = os.path.join(BASE_DIR, "data")
+SAVE_DIR = os.path.join(BASE_DIR, "spectrograms")
 
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+
+# =========================
+# TRAINING PREPROCESSING
+# =========================
 def create_spectrogram(audio_path, save_path):
-    print("  🎵 Processing:", audio_path)
-
     y, sr = librosa.load(audio_path, mono=True)
-    mel = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=64)
+
+    mel = librosa.feature.melspectrogram(
+        y=y,
+        sr=sr,
+        n_mels=128,
+        n_fft=2048,
+        hop_length=512
+    )
+
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+    np.save(save_path, mel_db)
+
+
+# =========================
+# INFERENCE PREPROCESSING
+# =========================
+def preprocess_audio(audio_path):
+    """
+    Used during inference
+    Returns tensor of shape (1, 1, H, W)
+    """
+    y, sr = librosa.load(audio_path, mono=True)
+
+    mel = librosa.feature.melspectrogram(
+        y=y,
+        sr=sr,
+        n_mels=128,
+        n_fft=2048,
+        hop_length=512
+    )
+
     mel_db = librosa.power_to_db(mel, ref=np.max)
 
-    plt.figure(figsize=(2, 2))
-    librosa.display.specshow(mel_db)
-    plt.axis("off")
-    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
-    plt.close()
+    # Normalize
+    mel_db = (mel_db - mel_db.min()) / (mel_db.max() - mel_db.min())
 
-    print("  🖼️ Saved:", save_path)
+    mel_db = torch.tensor(mel_db).unsqueeze(0).unsqueeze(0)
 
-print("🔥 Reached before __main__")
+    return mel_db.float()
 
+
+# =========================
+# DATASET GENERATION
+# =========================
 if __name__ == "__main__":
-    print("🚀 ENTERED __main__ BLOCK")
-
-    if not os.path.exists(DATA_DIR):
-        print("❌ DATA_DIR DOES NOT EXIST")
-        exit()
-
-    os.makedirs(SAVE_DIR, exist_ok=True)
-
     instruments = os.listdir(DATA_DIR)
-    print("🎼 Instruments found:", instruments)
 
     for instrument in instruments:
         inst_path = os.path.join(DATA_DIR, instrument)
         save_inst_path = os.path.join(SAVE_DIR, instrument)
 
         if not os.path.isdir(inst_path):
-            print("⚠️ Skipping non-folder:", instrument)
             continue
 
         os.makedirs(save_inst_path, exist_ok=True)
-        files = os.listdir(inst_path)
 
-        print(f"➡️ {instrument}: {len(files)} files")
-
-        for file in files:
-            if file.lower().endswith(".wav"):
+        for file in os.listdir(inst_path):
+            if file.endswith(".wav"):
                 audio_file = os.path.join(inst_path, file)
-                img_file = os.path.join(
+                spec_file = os.path.join(
                     save_inst_path,
-                    file.replace(".wav", ".png")
+                    file.replace(".wav", ".npy")
                 )
-                create_spectrogram(audio_file, img_file)
+                create_spectrogram(audio_file, spec_file)
 
     print("✅ ALL DONE")
