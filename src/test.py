@@ -40,7 +40,6 @@ transform = transforms.Compose([
 
 model = InstrumentCNN(len(CLASSES))
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
-model.to(DEVICE)
 model.eval()
 
 img = transform(audio_to_spectrogram(AUDIO_PATH)).unsqueeze(0).to(DEVICE)

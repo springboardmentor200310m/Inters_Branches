@@ -3,6 +3,7 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 print("🔥 preprocess.py STARTED")
 
@@ -14,6 +15,10 @@ print("BASE_DIR =", BASE_DIR)
 print("DATA_DIR =", DATA_DIR)
 print("SAVE_DIR =", SAVE_DIR)
 
+
+# =========================
+# TRAINING PREPROCESSING
+# =========================
 def create_spectrogram(audio_path, save_path):
     print("  🎵 Processing:", audio_path)
 
@@ -31,6 +36,38 @@ def create_spectrogram(audio_path, save_path):
 
 print("🔥 Reached before __main__")
 
+
+# =========================
+# INFERENCE PREPROCESSING
+# =========================
+def preprocess_audio(audio_path):
+    """
+    Used during inference
+    Returns tensor of shape (1, 1, H, W)
+    """
+    y, sr = librosa.load(audio_path, mono=True)
+
+    mel = librosa.feature.melspectrogram(
+        y=y,
+        sr=sr,
+        n_mels=128,
+        n_fft=2048,
+        hop_length=512
+    )
+
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+
+    # Normalize
+    mel_db = (mel_db - mel_db.min()) / (mel_db.max() - mel_db.min())
+
+    mel_db = torch.tensor(mel_db).unsqueeze(0).unsqueeze(0)
+
+    return mel_db.float()
+
+
+# =========================
+# DATASET GENERATION
+# =========================
 if __name__ == "__main__":
     print("🚀 ENTERED __main__ BLOCK")
 

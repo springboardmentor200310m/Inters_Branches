@@ -15,7 +15,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SPEC_DIR = os.path.join(BASE_DIR, "..", "spectrograms")
 MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "instrument_cnn.pth")
 
-CLASSES = sorted(os.listdir(SPEC_DIR))
+CLASSES = sorted([
+    d for d in os.listdir(SPEC_DIR)
+    if os.path.isdir(os.path.join(SPEC_DIR, d))
+])
+
 NUM_CLASSES = len(CLASSES)
 BATCH_SIZE = 32
 EPOCHS = 30

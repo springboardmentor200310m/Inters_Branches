@@ -1,4 +1,25 @@
+# Python
 __pycache__/
-venv/
 *.pyc
-.ipynb_checkpoints/
+*.pyo
+*.pyd
+*.env
+venv/
+.env
+
+# ML / Data
+*.h5
+*.ckpt
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Audio temp files (optional)
+*.wav
+*.mp3
