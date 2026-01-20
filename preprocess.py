@@ -1,22 +1,18 @@
 import os
 import librosa
 import numpy as np
-import torch
 
 print("🔥 preprocess.py STARTED")
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(SRC_DIR)
+BASE_DIR = os.path.dirname(SRC_DIR)   # 👈 go one level up
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
 SAVE_DIR = os.path.join(BASE_DIR, "spectrograms")
 
+
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-
-# =========================
-# TRAINING PREPROCESSING
-# =========================
 def create_spectrogram(audio_path, save_path):
     y, sr = librosa.load(audio_path, mono=True)
 
@@ -31,38 +27,6 @@ def create_spectrogram(audio_path, save_path):
     mel_db = librosa.power_to_db(mel, ref=np.max)
     np.save(save_path, mel_db)
 
-
-# =========================
-# INFERENCE PREPROCESSING
-# =========================
-def preprocess_audio(audio_path):
-    """
-    Used during inference
-    Returns tensor of shape (1, 1, H, W)
-    """
-    y, sr = librosa.load(audio_path, mono=True)
-
-    mel = librosa.feature.melspectrogram(
-        y=y,
-        sr=sr,
-        n_mels=128,
-        n_fft=2048,
-        hop_length=512
-    )
-
-    mel_db = librosa.power_to_db(mel, ref=np.max)
-
-    # Normalize
-    mel_db = (mel_db - mel_db.min()) / (mel_db.max() - mel_db.min())
-
-    mel_db = torch.tensor(mel_db).unsqueeze(0).unsqueeze(0)
-
-    return mel_db.float()
-
-
-# =========================
-# DATASET GENERATION
-# =========================
 if __name__ == "__main__":
     instruments = os.listdir(DATA_DIR)
 
