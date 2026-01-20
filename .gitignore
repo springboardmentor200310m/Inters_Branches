@@ -1,0 +1,42 @@
+env/
+venv/
+.env
+.venv/
+__pycache__/
+.vscode/
+.idea/
+
+
+*.wav
+*.mp3
+*.flac
+*.m4a
+nsynth-*/
+test_audio/
+
+
+test_images/
+train_images/
+valid_images/
+
+
+history_resNet.json
+*.log
+
+
+accuracy graph.png
+accuracy.png
+confusion_matrix_test.png
+confusion_matrix.png
+loss graph.png
+loss.png
+roc_auc_test.png
+
+
+report.json
+report.pdf
+jazz_song_01_instruments.json [cite: 98]
+
+
+.DS_Store
+Thumbs.db
