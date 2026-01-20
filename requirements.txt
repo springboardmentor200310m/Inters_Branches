@@ -1,0 +1,15 @@
+librosa
+numpy
+matplotlib
+pandas
+tqdm
+opencv-python
+soundfile
+scikit-learn
+torch
+torchvision
+streamlit
+pydub
+fpdf2
+seaborn
+pickle-mixin
