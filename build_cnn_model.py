@@ -75,3 +75,9 @@ model.compile(
 # ----------------------------
 print("\nCNN Model Summary:\n")
 model.summary()
+
+
+#to run this use command
+
+#cd C:\Users\mjala\OneDrive\Desktop\cnn_dataset
+#python build_cnn_model.py     
