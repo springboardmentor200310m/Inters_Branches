@@ -3,30 +3,53 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
 
-DATA_ROOT = "IRMAS-TrainingData"
-OUT_ROOT = "outputs/spectrogram_images"
-os.makedirs(OUT_ROOT, exist_ok=True)
+# ---------------- CONFIG ----------------
+AUDIO_DATASET_PATH = "music_dataset"   # folder with instrument folders
+OUTPUT_PATH = "spectrogram_dataset"    # output spectrogram images
+SAMPLE_RATE = 22050
+DURATION = 3        # seconds
+N_MELS = 128
 
-labels = [d for d in os.listdir(DATA_ROOT) if os.path.isdir(os.path.join(DATA_ROOT, d))]
+# ----------------------------------------
+
+os.makedirs(OUTPUT_PATH, exist_ok=True)
+
+def generate_mel_spectrogram(audio_path, save_path):
+    try:
+        y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, duration=DURATION)
+        mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=N_MELS)
+        mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+
+        plt.figure(figsize=(3, 3))
+        librosa.display.specshow(mel_spec_db, sr=sr, cmap="magma")
+        plt.axis("off")
+        plt.tight_layout(pad=0)
+        plt.savefig(save_path, dpi=100, bbox_inches="tight", pad_inches=0)
+        plt.close()
+
+    except Exception as e:
+        print(f"❌ Error processing {audio_path}: {e}")
 
 
-for label in labels:
-    src_folder = os.path.join(DATA_ROOT, label)
-    dst_folder = os.path.join(OUT_ROOT, label)
-    os.makedirs(dst_folder, exist_ok=True)
+# ---------------- MAIN ----------------
+print("🎵 Starting spectrogram generation...")
 
-    for file in tqdm(os.listdir(src_folder)[:50], desc=f"Processing {label}"):
-        if file.endswith(".wav"):
-            wav_path = os.path.join(src_folder, file)
-            y, sr = librosa.load(wav_path, sr=22050)
-            S = librosa.feature.melspectrogram(y=y, sr=sr)
-            S_db = librosa.power_to_db(S, ref=np.max)
+for instrument in os.listdir(AUDIO_DATASET_PATH):
+    instrument_path = os.path.join(AUDIO_DATASET_PATH, instrument)
 
-            plt.figure(figsize=(2.5, 2.5))
-            plt.axis('off')
-            librosa.display.specshow(S_db, sr=sr, cmap='magma')
-            out_path = os.path.join(dst_folder, file.replace(".wav", ".png"))
-            plt.savefig(out_path, bbox_inches='tight', pad_inches=0)
-            plt.close()
+    if not os.path.isdir(instrument_path):
+        continue
+
+    output_instrument_path = os.path.join(OUTPUT_PATH, instrument)
+    os.makedirs(output_instrument_path, exist_ok=True)
+
+    for file in os.listdir(instrument_path):
+        if file.endswith(".wav") or file.endswith(".mp3"):
+            audio_file = os.path.join(instrument_path, file)
+            image_file = file.replace(".wav", ".png").replace(".mp3", ".png")
+            save_path = os.path.join(output_instrument_path, image_file)
+
+            generate_mel_spectrogram(audio_file, save_path)
+
+    print(f"✅ Done: {instrument}")

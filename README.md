@@ -45,3 +45,7 @@ Due to GitHub size limitations, the following large files are uploaded to Google
 
 Download these files and place them inside:
 MileStone_3/ folder before running the notebook.
+ Author mentor
+
+## Contributors
+- Ansh Goyal (Ansh-Goyal01)
