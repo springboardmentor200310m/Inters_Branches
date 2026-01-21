@@ -1,3 +1,5 @@
+Accuracy: 0.8269794583320618
+Loss: 0.4813539385795593
 Final Model Evaluation Metrics
 
 Training Accuracy   : 95.17%
