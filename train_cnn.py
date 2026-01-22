@@ -1,96 +1,146 @@
-import tensorflow as tf
-from tensorflow.keras import layers, models
-import os
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
 
-print("Program started")
+from sklearn.metrics import confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# ----------------------------
-# CONFIG
-# ----------------------------
-DATASET_PATH = r"C:\Users\mjala\OneDrive\Desktop\cnn_dataset\spectrogram_output2"
-IMG_HEIGHT = 128
-IMG_WIDTH = 128
-BATCH_SIZE = 32
-EPOCHS = 10
+# --------------------
+# LOAD DATA
+# --------------------
+X_train = np.load("X_train.npy")
+X_val   = np.load("X_val.npy")
+y_train = np.load("y_train.npy")   # integers (0,1,2)
+y_val   = np.load("y_val.npy")
+class_names = np.load("label_classes.npy")
 
-print("Dataset path:", DATASET_PATH)
-
-# ----------------------------
-# LOAD DATASET
-# ----------------------------
-print("Loading dataset...")
-
-train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-    DATASET_PATH,
-    image_size=(IMG_HEIGHT, IMG_WIDTH),
-    batch_size=BATCH_SIZE,
-    shuffle=True
-)
-
-class_names = train_ds.class_names
 num_classes = len(class_names)
 
-print("Classes found:", class_names)
-print("Number of classes:", num_classes)
+print("Training data shape:", X_train.shape)
+print("Validation data shape:", X_val.shape)
+print("Classes:", class_names)
 
-# Improve performance
-AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+print("Unique training labels:", np.unique(y_train))
+print("Unique validation labels:", np.unique(y_val))
 
-# ----------------------------
-# CNN MODEL
-# ----------------------------
-model = models.Sequential([
-    layers.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    layers.Rescaling(1./255),
+# --------------------
+# BUILD CNN MODEL
+# --------------------
+model = Sequential([
+    Conv2D(32, (3, 3), activation="relu", input_shape=X_train.shape[1:]),
+    MaxPooling2D((2, 2)),
 
-    layers.Conv2D(32, (3, 3), activation='relu'),
-    layers.MaxPooling2D(),
+    Conv2D(64, (3, 3), activation="relu"),
+    MaxPooling2D((2, 2)),
 
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D(),
-
-    layers.Conv2D(128, (3, 3), activation='relu'),
-    layers.MaxPooling2D(),
-
-    layers.Flatten(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(num_classes, activation='softmax')
+    Flatten(),
+    Dense(64, activation="relu"),
+    Dropout(0.3),
+    Dense(num_classes, activation="softmax")
 ])
 
+# --------------------
+# COMPILE MODEL
+# --------------------
 model.compile(
-    optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
+    optimizer=Adam(learning_rate=0.0003),
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"]
 )
 
 model.summary()
 
-# ----------------------------
-# TRAIN
-# ----------------------------
-print("Starting training...")
+# --------------------
+# TRAIN MODEL
+# --------------------
 history = model.fit(
-    train_ds,
-    epochs=EPOCHS
+    X_train,
+    y_train,
+    epochs=25,
+    batch_size=32,
+    validation_data=(X_val, y_val)
 )
 
-# ----------------------------
+# --------------------
+# TRAINING CURVES (WEEK 5–6 GRAPHS)
+# --------------------
+epochs = range(1, len(history.history["accuracy"]) + 1)
+
+# Accuracy Curve
+plt.figure(figsize=(6, 4))
+plt.plot(epochs, history.history["accuracy"], label="Training Accuracy")
+plt.plot(epochs, history.history["val_accuracy"], label="Validation Accuracy")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.title("Training vs Validation Accuracy")
+plt.legend()
+plt.grid(True)
+plt.savefig("accuracy_curve.png")
+plt.show()
+
+# Loss Curve
+plt.figure(figsize=(6, 4))
+plt.plot(epochs, history.history["loss"], label="Training Loss")
+plt.plot(epochs, history.history["val_loss"], label="Validation Loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Training vs Validation Loss")
+plt.legend()
+plt.grid(True)
+plt.savefig("loss_curve.png")
+plt.show()
+
+# --------------------
+# FINAL EVALUATION
+# --------------------
+train_loss, train_acc = model.evaluate(X_train, y_train, verbose=0)
+val_loss, val_acc     = model.evaluate(X_val, y_val, verbose=0)
+
+print(f"\nFinal Training Accuracy: {train_acc * 100:.2f}%")
+print(f"Final Validation Accuracy: {val_acc * 100:.2f}%")
+
+# --------------------
+# CONFUSION MATRIX
+# --------------------
+y_pred_probs = model.predict(X_val)
+y_pred = np.argmax(y_pred_probs, axis=1)
+
+cm = confusion_matrix(y_val, y_pred)
+
+plt.figure(figsize=(6, 5))
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt="d",
+    cmap="Blues",
+    xticklabels=class_names,
+    yticklabels=class_names
+)
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.savefig("confusion_matrix.png")
+plt.show()
+
+# --------------------
+# CLASS-WISE METRICS
+# --------------------
+print("\nClassification Report:")
+print(classification_report(y_val, y_pred, target_names=class_names))
+
+# --------------------
+# ERROR ANALYSIS
+# --------------------
+print("\nMisclassification Analysis:")
+for i in range(len(class_names)):
+    for j in range(len(class_names)):
+        if i != j and cm[i, j] > 0:
+            print(f"{class_names[i]} misclassified as {class_names[j]}: {cm[i, j]} samples")
+
+# --------------------
 # SAVE MODEL
-# ----------------------------
-model.save("cnn_spectrogram_model.keras")
-print("Model saved as cnn_spectrogram_model.keras")
-
-
-
-
-
-#run the below 1,2 commands in the terminal
-# 1.python tensorboard_view.py
-# 2. tensorboard --logdir=logs
-
-#next,
-#copy this in browser for visually accesing the cnn models
-# 3.http://localhost:6006
-
-
+# --------------------
+model.save("instrument_cnn_model.h5")
+print("\nModel saved as instrument_cnn_model.h5")
