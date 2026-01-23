@@ -15,7 +15,7 @@ import tempfile
 
 # --- 1. Page Configuration ---
 st.set_page_config(page_title="InstruNet AI", layout="wide")
-st.title("🎵 InstruNet AI: Music Instrument Recognition")
+st.title("🎵 InstruNet AI")
 
 # --- 2. Model Loading (Cached) ---
 @st.cache_resource
